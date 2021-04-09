@@ -77,6 +77,7 @@ def remove_return_sym(str):
 
 
 def read_relations(relation_file):
+    relation_file = '/Users/michael/UCL/Courses/NLP/MetaLifelongLanguage/data/LifelongFewRel/relation_name.txt'
     relation_list = ['fill']
     with open(relation_file, encoding='utf8') as file_in:
         for line in file_in:
@@ -88,6 +89,7 @@ def read_relations(relation_file):
 
 
 def read_rel_data(sample_file):
+    sample_file = '/Users/michael/UCL/Courses/NLP/MetaLifelongLanguage/data/LifelongFewRel/training_data.txt'
     sample_data = []
     with open(sample_file, encoding='utf8') as file_in:
         for line in file_in:
