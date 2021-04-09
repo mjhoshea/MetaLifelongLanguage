@@ -30,28 +30,28 @@ def rel_encode(batch):
 
 def get_dataset(base_path, dataset_id):
     if dataset_id == 0:
-        train_path = os.path.join(base_path, './data/ag_news_csv/train.csv')
-        test_path = os.path.join(base_path, './data/ag_news_csv/test.csv')
+        train_path = os.path.join(base_path, '../data/ag_news_csv/train.csv')
+        test_path = os.path.join(base_path, '../data/ag_news_csv/test.csv')
         train_dataset = AGNewsDataset(train_path, 'train', reduce=True)
         test_dataset = AGNewsDataset(test_path, 'test', reduce=True)
     elif dataset_id == 1:
-        train_path = os.path.join(base_path, './data/amazon_review_full_csv/train.csv')
-        test_path = os.path.join(base_path, './data/amazon_review_full_csv/test.csv')
+        train_path = os.path.join(base_path, '../data/amazon_review_full_csv/train.csv')
+        test_path = os.path.join(base_path, '../data/amazon_review_full_csv/test.csv')
         train_dataset = AmazonDataset(train_path, 'train', reduce=True)
         test_dataset = AmazonDataset(test_path, 'test', reduce=True)
     elif dataset_id == 2:
-        train_path = os.path.join(base_path, './data/yelp_review_full_csv/train.csv')
-        test_path = os.path.join(base_path, './data/yelp_review_full_csv/test.csv')
+        train_path = os.path.join(base_path, '../data/yelp_review_full_csv/train.csv')
+        test_path = os.path.join(base_path, '../data/yelp_review_full_csv/test.csv')
         train_dataset = YelpDataset(train_path, 'train', reduce=True)
         test_dataset = YelpDataset(test_path, 'test', reduce=True)
     elif dataset_id == 3:
-        train_path = os.path.join(base_path, './data/dbpedia_csv/train.csv')
-        test_path = os.path.join(base_path, './data/dbpedia_csv/test.csv')
+        train_path = os.path.join(base_path, '../data/dbpedia_csv/train.csv')
+        test_path = os.path.join(base_path, '../data/dbpedia_csv/test.csv')
         train_dataset = DBPediaDataset(train_path, 'train', reduce=True)
         test_dataset = DBPediaDataset(test_path, 'test', reduce=True)
     elif dataset_id == 4:
-        train_path = os.path.join(base_path, './data/yahoo_answers_csv/train.csv')
-        test_path = os.path.join(base_path, './data/yahoo_answers_csv/test.csv')
+        train_path = os.path.join(base_path, '../data/yahoo_answers_csv/train.csv')
+        test_path = os.path.join(base_path, '../data/yahoo_answers_csv/test.csv')
         train_dataset = YahooAnswersDataset(train_path, 'train', reduce=True)
         test_dataset = YahooAnswersDataset(test_path, 'test', reduce=True)
     else:
@@ -77,6 +77,7 @@ def remove_return_sym(str):
 
 
 def read_relations(relation_file):
+    relation_file = '/Users/michael/UCL/Courses/NLP/MetaLifelongLanguage/data/LifelongFewRel/relation_name.txt'
     relation_list = ['fill']
     with open(relation_file, encoding='utf8') as file_in:
         for line in file_in:
@@ -88,6 +89,7 @@ def read_relations(relation_file):
 
 
 def read_rel_data(sample_file):
+    sample_file = '/Users/michael/UCL/Courses/NLP/MetaLifelongLanguage/data/LifelongFewRel/training_data.txt'
     sample_data = []
     with open(sample_file, encoding='utf8') as file_in:
         for line in file_in:

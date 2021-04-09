@@ -37,19 +37,17 @@ class AGNewsDataset(data.Dataset):
 
     def __init__(self, file_path, split, reduce=False):
 
-        self.data = pd.read_csv('/Users/michael/UCL/Courses/NLP/MetaLifelongLanguage/clean/agn_{}.csv'.format(split))
+        # self.data = pd.read_csv('/Users/michael/UCL/Courses/NLP/MetaLifelongLanguage/clean/agn_{}.csv'.format(split))
 
-        # self.data = pd.read_csv(file_path, header=None, sep=',', names=['labels', 'title', 'description'],
-        #                         index_col=False)
+        self.data = pd.read_csv('gdrive/My Drive/project_files/data/agn_{}.csv'.format(split))
+
         # self.data.dropna(inplace=True)
         # self.data['text'] = self.data['title'] + '. ' + self.data['description']
         # self.data['labels'] = self.data['labels'] - 1
         # self.data.drop(columns=['title', 'description'], inplace=True)
         # self.data['text'] = self.data['text'].apply(preprocess)
-        #
+
         # self.data.to_csv('/Users/michael/UCL/Courses/NLP/MetaLifelongLanguage/clean/agn_{}.csv'.format(split), index=False)
-
-
 
         self.n_classes = 4
         if reduce:
@@ -70,10 +68,9 @@ class AGNewsDataset(data.Dataset):
 class DBPediaDataset(data.Dataset):
 
     def __init__(self, file_path, split, reduce=False):
-        self.data = pd.read_csv('/Users/michael/UCL/Courses/NLP/MetaLifelongLanguage/clean/dbp_{}.csv'.format(split))
-        # self.data = pd.read_csv(file_path, header=None, sep=',', names=['labels', 'title', 'description'],
-        #                         index_col=False)
-        #
+        # self.data = pd.read_csv('/Users/michael/UCL/Courses/NLP/MetaLifelongLanguage/clean/dbp_{}.csv'.format(split))
+        self.data = pd.read_csv('gdrive/My Drive/project_files/data/dbp_{}.csv'.format(split))
+
         # self.data.dropna(inplace=True)
         # self.data['text'] = self.data['title'] + '. ' + self.data['description']
         # self.data['labels'] = self.data['labels'] - 1
@@ -100,14 +97,14 @@ class DBPediaDataset(data.Dataset):
 class AmazonDataset(data.Dataset):
 
     def __init__(self, file_path, split, reduce=False):
-        self.data = pd.read_csv('/Users/michael/UCL/Courses/NLP/MetaLifelongLanguage/clean/amz_{}.csv'.format(split))
-        # self.data = pd.read_csv(file_path, header=None, sep=',', names=['labels', 'title', 'description'],
-        #                         index_col=False)
+        # self.data = pd.read_csv('/Users/michael/UCL/Courses/NLP/MetaLifelongLanguage/clean/amz_{}.csv'.format(split))
+        self.data = pd.read_csv('gdrive/My Drive/project_files/data/amz_{}.csv'.format(split))
         # self.data.dropna(inplace=True)
         # self.data['text'] = self.data['title'] + '. ' + self.data['description']
         # self.data['labels'] = self.data['labels'] - 1
         # self.data.drop(columns=['title', 'description'], inplace=True)
         # self.data['text'] = self.data['text'].apply(preprocess)
+
         # self.data.to_csv('/Users/michael/UCL/Courses/NLP/MetaLifelongLanguage/clean/amz_{}.csv'.format(split), index=False)
 
         self.n_classes = 5
@@ -129,9 +126,8 @@ class AmazonDataset(data.Dataset):
 class YelpDataset(data.Dataset):
 
     def __init__(self, file_path, split, reduce=False):
-        self.data = pd.read_csv('/Users/michael/UCL/Courses/NLP/MetaLifelongLanguage/clean/yelp_{}.csv'.format(split))
-        # self.data = pd.read_csv(file_path, header=None, sep=',', names=['labels', 'text'],
-        #                         index_col=False)
+        # self.data = pd.read_csv('/Users/michael/UCL/Courses/NLP/MetaLifelongLanguage/clean/yelp_{}.csv'.format(split))
+        self.data = pd.read_csv('gdrive/My Drive/project_files/data/yelp_{}.csv'.format(split))
         # self.data.dropna(inplace=True)
         # self.data['labels'] = self.data['labels'] - 1
         # self.data['text'] = self.data['text'].apply(preprocess)
@@ -156,11 +152,9 @@ class YelpDataset(data.Dataset):
 class YahooAnswersDataset(data.Dataset):
 
     def __init__(self, file_path, split, reduce=False):
-        self.data = pd.read_csv('/Users/michael/UCL/Courses/NLP/MetaLifelongLanguage/clean/yahoo_ans_{}.csv'.format(split))
-        #
-        # self.data = pd.read_csv(file_path, header=None, sep=',',
-        #                         names=['labels', 'question_title', 'question_content', 'best_answer'],
-        #                         index_col=False)
+        # self.data = pd.read_csv('/Users/michael/UCL/Courses/NLP/MetaLifelongLanguage/clean/yahoo_ans_{}.csv'.format(split))
+
+        self.data = pd.read_csv('gdrive/My Drive/project_files/data/yahoo_ans_{}.csv'.format(split))
         # self.data.dropna(inplace=True)
         # self.data['text'] = self.data['question_title'] + self.data['question_content'] + self.data['best_answer']
         # self.data['labels'] = self.data['labels'] - 1
