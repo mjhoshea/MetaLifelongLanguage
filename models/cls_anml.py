@@ -94,9 +94,10 @@ class ANML:
                 labels = torch.tensor(labels).to(self.device)
                 input_dict = self.pn.encode_text(text)
                 with torch.no_grad():
-                    repr = fpn(input_dict, out_from='transformers')
+                    input_dict = self.pn.encode_text(text)
                     modulation = self.nm(input_dict)
-                    output = fpn(repr * modulation, out_from='linear')
+                    output = fpn(input_dict, modulation, out_from='full')
+                    # output = fpn(repr * modulation, out_from='linear')
                     loss = self.loss_fn(output, labels)
                 loss = loss.item()
                 pred = models.utils.make_prediction(output.detach())
@@ -113,6 +114,7 @@ class ANML:
     def training(self, train_datasets, **kwargs):
         updates = kwargs.get('updates')
         mini_batch_size = kwargs.get('mini_batch_size')
+        n_epochs = kwargs.get('n_epochs')
 
         if self.replay_rate != 0:
             replay_batch_freq = self.replay_every // mini_batch_size
@@ -123,13 +125,14 @@ class ANML:
             replay_steps = 0
         logger.info('Replay frequency: {}'.format(replay_freq))
         logger.info('Replay steps: {}'.format(replay_steps))
+        logger.info('Terminating training after episode: {}'.format(n_epochs))
 
         concat_dataset = data.ConcatDataset(train_datasets)
         train_dataloader = iter(data.DataLoader(concat_dataset, batch_size=mini_batch_size, shuffle=False,
                                                 collate_fn=datasets.utils.batch_encode))
 
         episode_id = 0
-        while True:
+        while episode_id < n_epochs:
 
             self.inner_optimizer.zero_grad()
             support_loss, support_acc, support_prec, support_rec, support_f1 = [], [], [], [], []
@@ -257,9 +260,16 @@ class ANML:
             precisions.append(prec)
             recalls.append(rec)
             f1s.append(f1)
+            logger.info('TestResults,{},{},{:.4f},{:.4f},{:.4f},{:.4f}'
+                        .format(kwargs.get('tag'), test_dataset.__class__.__name__, acc,
+                                prec, rec, f1))
 
         logger.info('Overall test metrics: Accuracy = {:.4f}, precision = {:.4f}, recall = {:.4f}, '
                     'F1 score = {:.4f}'.format(np.mean(accuracies), np.mean(precisions), np.mean(recalls),
                                                np.mean(f1s)))
+        logger.info('TestAveResults,{},{},{:.4f},{:.4f},{:.4f},{:.4f}'
+                    .format(kwargs.get('tag'), test_dataset.__class__.__name__, np.mean(accuracies),
+                            np.mean(precisions), np.mean(recalls),
+                            np.mean(f1s)))
 
-        return accuracies
+        return np.mean(accuracies), np.mean(precisions), np.mean(recalls), np.mean(f1s)
