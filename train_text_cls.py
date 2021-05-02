@@ -146,6 +146,19 @@ if __name__ == '__main__':
 
     # Testing
     logger.info('----------Testing starts here----------')
+
+    setattr(args, 'trace_file', 'trace/trace_' + tag)
+
+
+
+
+
+
+
+
+
+    
+
     accuracies, precisions, recalls, f1s = learner.testing(test_datasets, **vars(args))
     logger.info('ResultHeader,tag,' + ','.join(list(vars(args).keys())) + ',TestAveAccuracy,TestAvePrecision,'
                                                                      'TestAveRecall,TestAveF1s')

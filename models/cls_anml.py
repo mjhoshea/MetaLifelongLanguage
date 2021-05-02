@@ -57,7 +57,7 @@ class ANML:
         self.nm.load_state_dict(checkpoint['nm'])
         self.pn.load_state_dict(checkpoint['pn'])
 
-    def evaluate(self, dataloader, updates, mini_batch_size):
+    def evaluate(self, dataloader, updates, mini_batch_size, trace_file=None):
 
         support_set = []
         for _ in range(updates):
@@ -71,7 +71,9 @@ class ANML:
             # Inner loop
             task_predictions, task_labels = [], []
             support_loss = []
+            c = 0
             for text, labels in support_set:
+                labels_str = labels
                 labels = torch.tensor(labels).to(self.device)
                 input_dict = self.pn.encode_text(text)
                 modulation = self.nm(input_dict)
@@ -82,6 +84,12 @@ class ANML:
                 support_loss.append(loss.item())
                 task_predictions.extend(pred.tolist())
                 task_labels.extend(labels.tolist())
+                c += 1
+                if trace_file is not None:
+                    logger.info('Writing trace labels {}'.format(labels_str))
+                    file = trace_file + '_support_' + str(c) + '_'.join(map(str, labels_str)) + '.pt'
+                    logger.info('Writing trace to file {}'.format(file))
+                    torch.save(self.pn.hebbian.trace, file)
 
             acc, prec, rec, f1 = models.utils.calculate_metrics(task_predictions, task_labels)
 
@@ -91,6 +99,7 @@ class ANML:
             all_losses, all_predictions, all_labels = [], [], []
 
             for text, labels in dataloader:
+                labels_str = labels
                 labels = torch.tensor(labels).to(self.device)
                 input_dict = self.pn.encode_text(text)
                 with torch.no_grad():
@@ -100,6 +109,12 @@ class ANML:
                     # output = fpn(repr * modulation, out_from='linear')
                     loss = self.loss_fn(output, labels)
                 loss = loss.item()
+                c += 1
+                if trace_file is not None:
+                    logger.info('Writing trace labels {}'.format(labels_str))
+                    file = trace_file + '_query_' + str(c) + '_'.join(map(str, labels_str)) + '.pt'
+                    logger.info('Writing trace to file {}'.format(file))
+                    torch.save(self.pn.hebbian.trace, file)
                 pred = models.utils.make_prediction(output.detach())
                 all_losses.append(loss)
                 all_predictions.extend(pred.tolist())
@@ -158,9 +173,7 @@ class ANML:
 
                     modulation = self.nm(input_dict)
 
-                    output = fpn(input_dict,  modulation, out_from='full')
-
-
+                    output = fpn(input_dict, modulation, out_from='full')
 
                     loss = self.loss_fn(output, labels)
                     diffopt.step(loss)
@@ -193,9 +206,7 @@ class ANML:
                         logger.info('Terminating training as all the data is seen')
                         return
 
-
                 for text, labels in query_set:
-
 
                     labels = torch.tensor(labels).to(self.device)
                     input_dict = self.pn.encode_text(text)
@@ -247,6 +258,67 @@ class ANML:
 
                 episode_id += 1
 
+    def load_replay_memory(self, train_datasets, **kwargs):
+        updates = kwargs.get('updates')
+        mini_batch_size = kwargs.get('mini_batch_size')
+        n_epochs = kwargs.get('n_epochs')
+
+        if self.replay_rate != 0:
+            replay_batch_freq = self.replay_every // mini_batch_size
+            replay_freq = int(math.ceil((replay_batch_freq + 1) / (updates + 1)))
+            replay_steps = int(self.replay_every * self.replay_rate / mini_batch_size)
+        else:
+            replay_freq = 0
+            replay_steps = 0
+        logger.info('Replay frequency: {}'.format(replay_freq))
+        logger.info('Replay steps: {}'.format(replay_steps))
+        logger.info('Terminating training after episode: {}'.format(n_epochs))
+
+        concat_dataset = data.ConcatDataset(train_datasets)
+        train_dataloader = iter(data.DataLoader(concat_dataset, batch_size=mini_batch_size, shuffle=False,
+                                                collate_fn=datasets.utils.batch_encode))
+
+        episode_id = 0
+        while episode_id < n_epochs:
+
+            self.inner_optimizer.zero_grad()
+
+            with higher.innerloop_ctx(self.pn, self.inner_optimizer,
+                                      copy_initial_weights=False,
+                                      track_higher_grads=False) as (fpn, diffopt):
+
+                # Inner loop
+                support_set = []
+
+                for _ in range(updates):
+                    try:
+                        text, labels = next(train_dataloader)
+                        support_set.append((text, labels))
+                    except StopIteration:
+                        logger.info('Terminating training as all the data is seen')
+                        return
+
+                for text, labels in support_set:
+                    labels = torch.tensor(labels).to(self.device)
+                    self.memory.write_batch(text, labels)
+
+                query_set = []
+
+                if self.replay_rate != 0 and (episode_id + 1) % replay_freq == 0:
+                    for _ in range(replay_steps):
+                        text, labels = self.memory.read_batch(batch_size=mini_batch_size)
+                        query_set.append((text, labels))
+                else:
+                    try:
+                        text, labels = next(train_dataloader)
+                        query_set.append((text, labels))
+                        self.memory.write_batch(text, labels)
+                    except StopIteration:
+                        logger.info('Terminating training as all the data is seen')
+                        return
+
+                episode_id += 1
+
     def testing(self, test_datasets, **kwargs):
         updates = kwargs.get('updates')
         mini_batch_size = kwargs.get('mini_batch_size')
@@ -255,7 +327,8 @@ class ANML:
             logger.info('Testing on {}'.format(test_dataset.__class__.__name__))
             test_dataloader = data.DataLoader(test_dataset, batch_size=mini_batch_size, shuffle=False,
                                               collate_fn=datasets.utils.batch_encode)
-            acc, prec, rec, f1 = self.evaluate(dataloader=test_dataloader, updates=updates, mini_batch_size=mini_batch_size)
+            acc, prec, rec, f1 = self.evaluate(dataloader=test_dataloader, updates=updates,
+                                               mini_batch_size=mini_batch_size, trace_file=kwargs.get('trace_file'))
             accuracies.append(acc)
             precisions.append(prec)
             recalls.append(rec)
