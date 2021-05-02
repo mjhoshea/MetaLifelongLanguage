@@ -4,6 +4,7 @@ import os
 import random
 from argparse import ArgumentParser
 from datetime import datetime
+import socket
 
 import torchtext
 import torch
@@ -88,6 +89,15 @@ if __name__ == '__main__':
 
         logger.info('Running order {}'.format(i + 1))
 
+        if args.log_file is None:
+            tag = args.learner + '-' + str(args.mini_batch_size) + '-' + str(i) \
+                  + '-' + socket.gethostname() + '-' \
+                  + '-' + str(datetime.now()).replace(':', '-').replace(' ', '_')
+            # + '-train_size_' + str(datasets.text_classification_dataset.MAX_TRAIN_SIZE) \
+                  # + '-test_size_' + str(datasets.text_classification_dataset.MAX_TEST_SIZE) \
+        else:
+            tag = args.log_file
+
         # Initialize the model
         if args.learner == 'sequential':
             learner = Baseline(device=device, training_mode='sequential', **vars(args))
@@ -124,6 +134,9 @@ if __name__ == '__main__':
         # Testing
         logger.info('----------Testing starts here----------')
         acc = learner.testing(val_dataset, **vars(args))
+        logger.info(
+            'ResultValues,' + tag + ',' + ','.join(map(str, list(vars(args).values())))
+            + ',{}'.format(accuracies))
         accuracies.append(acc)
 
         # Delete the model to free memory
