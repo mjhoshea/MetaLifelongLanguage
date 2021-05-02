@@ -75,7 +75,10 @@ class TransformerClsModel(nn.Module):
     def forward(self, inputs, modulation, out_from='full', is_training=True):
         if out_from == 'full':
             _, out = self.encoder(inputs['input_ids'], attention_mask=inputs['attention_mask'])
-            out = self.hebbian(out, modulation, is_training)
+            mod1 = modulation[:, :768]
+            mod2 = modulation[:, 768:]
+            out = out*mod1
+            out = self.hebbian(out, mod2, is_training)
         elif out_from == 'transformers':
             _, out = self.encoder(inputs['input_ids'], attention_mask=inputs['attention_mask'])
         elif out_from == 'linear':
@@ -140,7 +143,7 @@ class TransformerNeuromodulator(nn.Module):
         self.encoder.requires_grad = False
         self.linear = nn.Sequential(nn.Linear(768, 768),
                                     nn.ReLU(),
-                                    nn.Linear(768, 768 * n_classes),
+                                    nn.Linear(768, 768 * (n_classes+1)),
                                     nn.Sigmoid())
         self.to(self.device)
 
